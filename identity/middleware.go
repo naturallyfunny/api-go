@@ -7,19 +7,21 @@ import (
 )
 
 func RequireUserID(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := r.Header.Get("x-user-id")
-		if userID == "" {
-			api.WriteError(w, api.NewError(http.StatusUnauthorized, "UNAUTHORIZED", "Missing user identity"))
-			return
-		}
+	return RequireUserIDWithHeader("x-user-id")(next)
+}
 
-		ctx, err := api.NewContextWithUserID(r.Context(), userID)
-		if err != nil {
-			api.WriteError(w, api.NewError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user identity"))
-			return
-		}
+func RequireUserIDWithHeader(headerName string) api.Middleware {
+	return func(next http.Handler) http.Handler {
+		return api.RequireHeader(headerName)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Header.Get(headerName)
 
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+			ctx, err := api.NewContextWithUserID(r.Context(), userID)
+			if err != nil {
+				api.WriteError(w, api.NewError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user identity"))
+				return
+			}
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}))
+	}
 }
