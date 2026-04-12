@@ -15,7 +15,7 @@ func RequireUserIDWithHeader(headerName string) api.Middleware {
 		return api.RequireHeader(headerName)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Header.Get(headerName)
 
-			ctx, err := api.NewContextWithUserID(r.Context(), userID)
+			ctx, err := NewContextWithUserID(r.Context(), userID)
 			if err != nil {
 				api.WriteError(w, api.NewError(http.StatusUnauthorized, "UNAUTHORIZED", "Invalid user identity"))
 				return

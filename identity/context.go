@@ -1,14 +1,14 @@
-package api
+package identity
 
 import (
 	"context"
 	"errors"
 )
 
-type contextKey int
+type contextKey string
 
 const (
-	userIDKey contextKey = iota
+	userIDKey contextKey = "user_id"
 )
 
 func NewContextWithUserID(ctx context.Context, userID string) (context.Context, error) {
