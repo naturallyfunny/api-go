@@ -3,7 +3,7 @@ package identity
 import (
 	"net/http"
 
-	"go.ibnfadl.com/api"
+	"go.naturallyfunny.dev/api"
 )
 
 func RequireUserID(next http.Handler) http.Handler {
