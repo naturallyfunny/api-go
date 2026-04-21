@@ -14,25 +14,31 @@ type Meta struct {
 	TotalPages int `json:"totalPages,omitempty"`
 }
 
-type Response[T any] struct {
+type apiResponse struct {
 	Success bool          `json:"success"`
-	Code    string        `json:"code"`
+	Code    Code          `json:"code"`
 	Message string        `json:"message"`
-	Data    T             `json:"data,omitempty"`
+	Data    any           `json:"data,omitempty"`
 	Meta    *Meta         `json:"meta,omitempty"`
 	Errors  []ErrorDetail `json:"errors,omitempty"`
 }
 
-func writeJSON[T any](w http.ResponseWriter, status int, payload Response[T]) {
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("api: failed to encode response: %v", err)
+		http.Error(w, `{"success":false,"code":13,"message":"Internal server error"}`, http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		log.Printf("api: failed to encode response: %v", err)
+	if _, err := w.Write(b); err != nil {
+		log.Printf("api: failed to write response: %v", err)
 	}
 }
 
-func WriteSuccess[T any](w http.ResponseWriter, status int, code, message string, data T, meta *Meta) {
-	writeJSON(w, status, Response[T]{
+func WriteSuccess[T any](w http.ResponseWriter, code Code, message string, data T, meta *Meta) {
+	writeJSON(w, code.HTTPStatus(), apiResponse{
 		Success: true,
 		Code:    code,
 		Message: message,
@@ -41,26 +47,29 @@ func WriteSuccess[T any](w http.ResponseWriter, status int, code, message string
 	})
 }
 
-func writeFailure(w http.ResponseWriter, status int, code, message string, details []ErrorDetail) {
-	writeJSON(w, status, Response[struct{}]{
-		Success: false,
-		Code:    code,
-		Message: message,
-		Errors:  details,
-	})
-}
-
 func WriteError(w http.ResponseWriter, err error) {
-	var apiErr *Error
+	if err == nil {
+		return
+	}
 
+	var apiErr *Error
 	if errors.As(err, &apiErr) {
-		if apiErr.Status >= http.StatusInternalServerError && apiErr.Err != nil {
-			log.Printf("api: wrapped internal error: %v", apiErr.Err)
+		if apiErr.Code.HTTPStatus() >= http.StatusInternalServerError && apiErr.Err != nil {
+			log.Printf("api: %s: %v", apiErr.Code, apiErr.Err)
 		}
-		writeFailure(w, apiErr.Status, apiErr.Code, apiErr.Message, apiErr.Details)
+		writeJSON(w, apiErr.Code.HTTPStatus(), apiResponse{
+			Success: false,
+			Code:    apiErr.Code,
+			Message: apiErr.Message,
+			Errors:  apiErr.Details,
+		})
 		return
 	}
 
 	log.Printf("api: unhandled internal error: %v", err)
-	writeFailure(w, http.StatusInternalServerError, "INTERNAL_ERROR", "An unexpected error occurred", nil)
+	writeJSON(w, http.StatusInternalServerError, apiResponse{
+		Success: false,
+		Code:    Internal,
+		Message: "An unexpected error occurred",
+	})
 }

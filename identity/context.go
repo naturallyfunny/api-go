@@ -13,7 +13,7 @@ const (
 
 func NewContextWithUserID(ctx context.Context, userID string) (context.Context, error) {
 	if userID == "" {
-		return nil, errors.New("user ID cannot be empty")
+		return ctx, errors.New("user ID cannot be empty")
 	}
 	return context.WithValue(ctx, userIDKey, userID), nil
 }
