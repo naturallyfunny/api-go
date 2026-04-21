@@ -6,11 +6,11 @@ import (
 	"go.naturallyfunny.dev/api"
 )
 
-func RequireUserID(next http.Handler) http.Handler {
-	return RequireUserIDWithHeader("x-user-id")(next)
+func WithUserID(next http.Handler) http.Handler {
+	return WithUserIDFromHeader("x-user-id")(next)
 }
 
-func RequireUserIDWithHeader(headerName string) api.Middleware {
+func WithUserIDFromHeader(headerName string) api.Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Header.Get(headerName)

@@ -14,7 +14,7 @@ type Meta struct {
 	TotalPages int `json:"totalPages,omitempty"`
 }
 
-type apiResponse struct {
+type response struct {
 	Success bool          `json:"success"`
 	Code    Code          `json:"code"`
 	Message string        `json:"message"`
@@ -38,7 +38,7 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 }
 
 func WriteSuccess[T any](w http.ResponseWriter, code Code, message string, data T, meta *Meta) {
-	writeJSON(w, code.HTTPStatus(), apiResponse{
+	writeJSON(w, code.HTTPStatus(), response{
 		Success: true,
 		Code:    code,
 		Message: message,
@@ -57,7 +57,7 @@ func WriteError(w http.ResponseWriter, err error) {
 		if apiErr.Code.HTTPStatus() >= http.StatusInternalServerError && apiErr.Err != nil {
 			log.Printf("api: %s: %v", apiErr.Code, apiErr.Err)
 		}
-		writeJSON(w, apiErr.Code.HTTPStatus(), apiResponse{
+		writeJSON(w, apiErr.Code.HTTPStatus(), response{
 			Success: false,
 			Code:    apiErr.Code,
 			Message: apiErr.Message,
@@ -67,7 +67,7 @@ func WriteError(w http.ResponseWriter, err error) {
 	}
 
 	log.Printf("api: unhandled internal error: %v", err)
-	writeJSON(w, http.StatusInternalServerError, apiResponse{
+	writeJSON(w, http.StatusInternalServerError, response{
 		Success: false,
 		Code:    Internal,
 		Message: "An unexpected error occurred",
