@@ -15,7 +15,7 @@ type Meta struct {
 	TotalPages int `json:"totalPages,omitempty"`
 }
 
-// Response is the shared wire envelope for all Avagenc API responses.
+// Response is the shared wire envelope for all API responses.
 // Servers write it; clients decode into Response[T] for type-safe Data access.
 // Use Response[json.RawMessage] to defer or skip Data decoding.
 type Response[T any] struct {
