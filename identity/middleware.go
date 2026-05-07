@@ -23,3 +23,21 @@ func WithUserIDFromHeader(headerName string) api.Middleware {
 		})
 	}
 }
+
+func WithUserTimezone(next http.Handler) http.Handler {
+	return WithUserTimezoneFromHeader("x-user-timezone")(next)
+}
+
+func WithUserTimezoneFromHeader(headerName string) api.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			tz := r.Header.Get(headerName)
+			ctx, err := NewContextWithTimezone(r.Context(), tz)
+			if err != nil {
+				api.WriteError(w, api.NewError(api.InvalidArgument, "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)"))
+				return
+			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
