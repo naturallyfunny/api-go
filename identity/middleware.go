@@ -24,6 +24,24 @@ func WithUserIDFromHeader(headerName string) api.Middleware {
 	}
 }
 
+func WithSessionID(next http.Handler) http.Handler {
+	return WithSessionIDFromHeader("x-session-id")(next)
+}
+
+func WithSessionIDFromHeader(headerName string) api.Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			sessionID := r.Header.Get(headerName)
+			ctx, err := NewContextWithSessionID(r.Context(), sessionID)
+			if err != nil {
+				api.WriteError(w, api.NewError(api.Unauthenticated, "Missing required session identity header"))
+				return
+			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 func WithUserTimezone(next http.Handler) http.Handler {
 	return WithUserTimezoneFromHeader("x-user-timezone")(next)
 }
