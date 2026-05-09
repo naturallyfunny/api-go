@@ -7,55 +7,25 @@ import (
 )
 
 func WithUserID(next http.Handler) http.Handler {
-	return WithUserIDFromHeader("x-user-id")(next)
-}
-
-func WithUserIDFromHeader(headerName string) api.Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			userID := r.Header.Get(headerName)
-			ctx, err := NewContextWithUserID(r.Context(), userID)
-			if err != nil {
-				api.WriteError(w, api.NewError(api.Unauthenticated, "Missing required identity header"))
-				return
-			}
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
+	return api.HeaderToContext(
+		"x-user-id",
+		NewContextWithUserID,
+		api.NewError(api.Unauthenticated, "Missing required identity header"),
+	)(next)
 }
 
 func WithSessionID(next http.Handler) http.Handler {
-	return WithSessionIDFromHeader("x-session-id")(next)
+	return api.HeaderToContext(
+		"x-session-id",
+		NewContextWithSessionID,
+		api.NewError(api.Unauthenticated, "Missing required session identity header"),
+	)(next)
 }
 
-func WithSessionIDFromHeader(headerName string) api.Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sessionID := r.Header.Get(headerName)
-			ctx, err := NewContextWithSessionID(r.Context(), sessionID)
-			if err != nil {
-				api.WriteError(w, api.NewError(api.Unauthenticated, "Missing required session identity header"))
-				return
-			}
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
-}
-
-func WithUserTimezone(next http.Handler) http.Handler {
-	return WithUserTimezoneFromHeader("x-user-timezone")(next)
-}
-
-func WithUserTimezoneFromHeader(headerName string) api.Middleware {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			tz := r.Header.Get(headerName)
-			ctx, err := NewContextWithTimezone(r.Context(), tz)
-			if err != nil {
-				api.WriteError(w, api.NewError(api.InvalidArgument, "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)"))
-				return
-			}
-			next.ServeHTTP(w, r.WithContext(ctx))
-		})
-	}
+func WithTimezone(next http.Handler) http.Handler {
+	return api.HeaderToContext(
+		"x-user-timezone",
+		NewContextWithTimezone,
+		api.NewError(api.InvalidArgument, "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)"),
+	)(next)
 }
