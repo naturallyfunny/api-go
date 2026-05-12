@@ -2,10 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
-	"log"
-	"net/http"
 )
 
 type Meta struct {
@@ -44,55 +41,4 @@ func Decode[T any](r io.Reader) (T, error) {
 		}
 	}
 	return resp.Data, nil
-}
-
-func writeJSON(w http.ResponseWriter, status int, payload any) {
-	b, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("api: failed to encode response: %v", err)
-		http.Error(w, `{"success":false,"code":13,"message":"Internal server error"}`, http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if _, err := w.Write(b); err != nil {
-		log.Printf("api: failed to write response: %v", err)
-	}
-}
-
-func WriteSuccess[T any](w http.ResponseWriter, code Code, message string, data T, meta *Meta) {
-	writeJSON(w, code.HTTPStatus(), Response[T]{
-		Success: true,
-		Code:    code,
-		Message: message,
-		Data:    data,
-		Meta:    meta,
-	})
-}
-
-func WriteError(w http.ResponseWriter, err error) {
-	if err == nil {
-		return
-	}
-
-	var apiErr *Error
-	if errors.As(err, &apiErr) {
-		if apiErr.Code.HTTPStatus() >= http.StatusInternalServerError && apiErr.Err != nil {
-			log.Printf("api: %s: %v", apiErr.Code, apiErr.Err)
-		}
-		writeJSON(w, apiErr.Code.HTTPStatus(), Response[json.RawMessage]{
-			Success: false,
-			Code:    apiErr.Code,
-			Message: apiErr.Message,
-			Errors:  apiErr.Details,
-		})
-		return
-	}
-
-	log.Printf("api: unhandled internal error: %v", err)
-	writeJSON(w, http.StatusInternalServerError, Response[json.RawMessage]{
-		Success: false,
-		Code:    Internal,
-		Message: "An unexpected error occurred",
-	})
 }

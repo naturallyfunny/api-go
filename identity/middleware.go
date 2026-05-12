@@ -1,29 +1,30 @@
 package identity
 
 import (
-	"net/http"
+	nethttp "net/http"
 
 	"go.naturallyfunny.dev/api"
+	apihttp "go.naturallyfunny.dev/api/http"
 )
 
-func WithUserID(next http.Handler) http.Handler {
-	return api.HeaderToContext(
+func HTTPWithUserID(next nethttp.Handler) nethttp.Handler {
+	return apihttp.HeaderToContext(
 		"x-user-id",
 		NewContextWithUserID,
 		api.NewError(api.Unauthenticated, "Missing required identity header"),
 	)(next)
 }
 
-func WithSessionID(next http.Handler) http.Handler {
-	return api.HeaderToContext(
+func HTTPWithSessionID(next nethttp.Handler) nethttp.Handler {
+	return apihttp.HeaderToContext(
 		"x-session-id",
 		NewContextWithSessionID,
 		api.NewError(api.Unauthenticated, "Missing required session identity header"),
 	)(next)
 }
 
-func WithTimezone(next http.Handler) http.Handler {
-	return api.HeaderToContext(
+func HTTPWithUserTimezone(next nethttp.Handler) nethttp.Handler {
+	return apihttp.HeaderToContext(
 		"x-user-timezone",
 		NewContextWithTimezone,
 		api.NewError(api.InvalidArgument, "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)"),

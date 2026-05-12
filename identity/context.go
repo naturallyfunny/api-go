@@ -8,19 +8,19 @@ import (
 type contextKey string
 
 const (
-	userIDKey    contextKey = "user_id"
-	sessionIDKey contextKey = "session_id"
+	UserIDKey    contextKey = "user_id"
+	SessionIDKey contextKey = "session_id"
 )
 
 func NewContextWithUserID(ctx context.Context, userID string) (context.Context, error) {
 	if userID == "" {
 		return ctx, errors.New("user ID cannot be empty")
 	}
-	return context.WithValue(ctx, userIDKey, userID), nil
+	return context.WithValue(ctx, UserIDKey, userID), nil
 }
 
 func GetUserIDFromContext(ctx context.Context) (string, error) {
-	val, ok := ctx.Value(userIDKey).(string)
+	val, ok := ctx.Value(UserIDKey).(string)
 	if !ok || val == "" {
 		return "", errors.New("user ID not found in context")
 	}
@@ -31,11 +31,11 @@ func NewContextWithSessionID(ctx context.Context, sessionID string) (context.Con
 	if sessionID == "" {
 		return ctx, errors.New("session ID cannot be empty")
 	}
-	return context.WithValue(ctx, sessionIDKey, sessionID), nil
+	return context.WithValue(ctx, SessionIDKey, sessionID), nil
 }
 
 func GetSessionIDFromContext(ctx context.Context) (string, error) {
-	val, ok := ctx.Value(sessionIDKey).(string)
+	val, ok := ctx.Value(SessionIDKey).(string)
 	if !ok || val == "" {
 		return "", errors.New("session ID not found in context")
 	}
