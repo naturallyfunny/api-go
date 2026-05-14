@@ -9,7 +9,7 @@ type key struct{}
 
 var ContextKey = key{}
 
-func NewContextWithID(ctx context.Context, id string) (context.Context, error) {
+func ContextWithID(ctx context.Context, id string) (context.Context, error) {
 	if id == "" {
 		return ctx, errors.New("session ID cannot be empty")
 	}

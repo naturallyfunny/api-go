@@ -11,7 +11,7 @@ type key struct{}
 
 var ContextKey = key{}
 
-func NewContext(ctx context.Context, tz string) (context.Context, error) {
+func ContextWithZone(ctx context.Context, tz string) (context.Context, error) {
 	if tz == "" {
 		return ctx, errors.New("timezone cannot be empty")
 	}
@@ -21,7 +21,7 @@ func NewContext(ctx context.Context, tz string) (context.Context, error) {
 	return context.WithValue(ctx, ContextKey, tz), nil
 }
 
-func FromContext(ctx context.Context) (string, error) {
+func ZoneFromContext(ctx context.Context) (string, error) {
 	val, ok := ctx.Value(ContextKey).(string)
 	if !ok || val == "" {
 		return "", errors.New("timezone not found in context")
