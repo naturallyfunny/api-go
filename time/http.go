@@ -1,4 +1,4 @@
-package timezone
+package time
 
 import (
 	nethttp "net/http"
@@ -7,7 +7,7 @@ import (
 	apihttp "go.naturallyfunny.dev/api/http"
 )
 
-func HTTPMiddleware(next nethttp.Handler) nethttp.Handler {
+func HTTPWithZone(next nethttp.Handler) nethttp.Handler {
 	return apihttp.HeaderToContext(
 		"time-zone",
 		NewContext,

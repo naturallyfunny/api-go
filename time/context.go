@@ -1,4 +1,4 @@
-package timezone
+package time
 
 import (
 	"context"

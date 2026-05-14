@@ -7,7 +7,7 @@ import (
 	apihttp "go.naturallyfunny.dev/api/http"
 )
 
-func HTTPMiddleware(next nethttp.Handler) nethttp.Handler {
+func HTTPWithID(next nethttp.Handler) nethttp.Handler {
 	return apihttp.HeaderToContext(
 		"session-id",
 		NewContextWithID,
