@@ -9,7 +9,7 @@ import (
 
 func HTTPMiddleware(next nethttp.Handler) nethttp.Handler {
 	return apihttp.HeaderToContext(
-		"x-user-timezone",
+		"time-zone",
 		NewContext,
 		api.NewError(api.InvalidArgument, "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)"),
 	)(next)

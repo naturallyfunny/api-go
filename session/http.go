@@ -9,7 +9,7 @@ import (
 
 func HTTPMiddleware(next nethttp.Handler) nethttp.Handler {
 	return apihttp.HeaderToContext(
-		"x-session-id",
+		"session-id",
 		NewContextWithID,
 		api.NewError(api.Unauthenticated, "Missing required session identity header"),
 	)(next)
