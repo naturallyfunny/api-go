@@ -7,12 +7,15 @@ import (
 )
 
 func HTTPWithZone(next nethttp.Handler) nethttp.Handler {
-	return apihttp.HeaderToContext(
-		"time-zone",
-		ContextWithZone,
-		nethttp.StatusBadRequest,
-		map[string]any{
-			"detail": "Missing or invalid timezone header: expected a valid IANA timezone name (e.g. Asia/Jakarta)",
-		},
-	)(next)
+	return nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
+		tz := r.Header.Get("time-zone")
+		ctx, err := ContextWithZone(r.Context(), tz)
+		if err != nil {
+			apihttp.WriteProblem(w, nethttp.StatusBadRequest, map[string]any{
+				"detail": err.Error(),
+			})
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

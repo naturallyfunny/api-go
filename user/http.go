@@ -7,12 +7,15 @@ import (
 )
 
 func HTTPWithID(next nethttp.Handler) nethttp.Handler {
-	return apihttp.HeaderToContext(
-		"user-id",
-		ContextWithID,
-		nethttp.StatusUnauthorized,
-		map[string]any{
-			"detail": "Missing required identity header",
-		},
-	)(next)
+	return nethttp.HandlerFunc(func(w nethttp.ResponseWriter, r *nethttp.Request) {
+		id := r.Header.Get("user-id")
+		ctx, err := ContextWithID(r.Context(), id)
+		if err != nil {
+			apihttp.WriteProblem(w, nethttp.StatusUnauthorized, map[string]any{
+				"detail": err.Error(),
+			})
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
