@@ -3,7 +3,6 @@ package user
 import (
 	nethttp "net/http"
 
-	"go.naturallyfunny.dev/api"
 	apihttp "go.naturallyfunny.dev/api/http"
 )
 
@@ -11,6 +10,9 @@ func HTTPWithID(next nethttp.Handler) nethttp.Handler {
 	return apihttp.HeaderToContext(
 		"user-id",
 		NewContextWithID,
-		api.NewError(api.Unauthenticated, "Missing required identity header"),
+		nethttp.StatusUnauthorized,
+		map[string]any{
+			"detail": "Missing required identity header",
+		},
 	)(next)
 }
